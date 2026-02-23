@@ -415,10 +415,7 @@ function addBehavior(student){
 }
 
 function save(){
-  localStorage.setItem("librus",JSON.stringify(data));
-  render();
-  renderEvents();
-  renderBehavior();
+  database.ref("librus").set(data);
 }
 
 subjectSelect.onchange=render;
