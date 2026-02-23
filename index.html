@@ -423,9 +423,11 @@ document.getElementById("semester").onchange=render;
 database.ref("librus").on("value", function(snapshot) {
   if(snapshot.exists()){
     data = snapshot.val();
-    render();
-    renderEvents();
-    renderBehavior();
+  }
+  render();
+  renderEvents();
+  renderBehavior();
+});
   }
 });
 
