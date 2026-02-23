@@ -420,10 +420,15 @@ function save(){
 
 subjectSelect.onchange=render;
 document.getElementById("semester").onchange=render;
+database.ref("librus").on("value", function(snapshot) {
+  if(snapshot.exists()){
+    data = snapshot.val();
+    render();
+    renderEvents();
+    renderBehavior();
+  }
+});
 
-render();
-renderEvents();
-renderBehavior();
 </script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
