@@ -420,13 +420,16 @@ function save(){
 
 subjectSelect.onchange=render;
 document.getElementById("semester").onchange=render;
-database.ref("librus").on("value", function(snapshot) {
+database.ref("librus").once("value").then(function(snapshot){
   if(snapshot.exists()){
     data = snapshot.val();
+  } else {
+    database.ref("librus").set(data);
   }
   render();
   renderEvents();
   renderBehavior();
+});
 });
   }
 });
