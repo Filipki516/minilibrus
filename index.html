@@ -2,455 +2,104 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Librus Synergia</title>
-
+<title>MiniLibrus – Nauczyciel</title>
 <style>
-body{font-family:Arial;background:#f2f2f2;margin:0;font-size:13px}
-header{background:#f5f6fa;border-bottom:1px solid #ccc;padding:10px 20px}
-header h1{margin:0;color:#a4006d}
-.panel{background:#fff;margin:15px;padding:10px;border:1px solid #ccc}
-
-table{width:100%;border-collapse:collapse}
-th,td{border:1px solid #cfd6df;padding:6px;text-align:center}
-th{background:#e6e6e6;font-weight:normal}
-td.name{text-align:left}
-
-select,input,button{font-size:13px;padding:3px}
-
-.grades{display:flex;gap:4px;flex-wrap:wrap}
-.grade{
-  width:26px;height:26px;line-height:26px;
-  text-align:center;font-weight:bold;
-  border:1px solid #777;
-  cursor:pointer;
-}
-.g1{background:#f28b82}
-.g2{background:#fbbc04}
-.g3{background:#fff475}
-.g4{background:#ccff90}
-.g5{background:#81c995}
-.g6{background:#34a853;color:#fff}
-
-.mid{background:#ddd;font-weight:bold}
+body { font-family: Arial; background:#111; color:white; margin:0; padding:20px; }
+h1 { color:#4da6ff; }
+select, input, button { padding:6px; margin:5px; }
+table { border-collapse: collapse; margin-top:15px; width:100%; }
+th, td { border:1px solid #555; padding:8px; text-align:center; }
+th { background:#222; }
+button { background:#4da6ff; border:none; cursor:pointer; }
+button:hover { opacity:0.8; }
 </style>
 </head>
-
 <body>
 
-<header><h1>Librus Synergia</h1></header>
+<h1>MiniLibrus – Panel Nauczyciela</h1>
 
-<div class="panel">
-Przedmiot:
-<select id="subject"></select>
+<h2>Lista uczniów</h2>
+<ul id="listaUczniow"></ul>
 
-Semestr:
-<select id="semester">
-<option value="1">1 semestr</option>
-<option value="2">2 semestr</option>
+<h2>Dodaj ocenę</h2>
+<select id="uczen"></select>
+<select id="przedmiot">
+<option>Matematyka</option>
+<option>Polski</option>
+<option>Angielski</option>
+<option>Historia</option>
 </select>
-</div>
+<input type="number" id="ocena" min="1" max="6" placeholder="Ocena">
+<button onclick="dodajOcene()">Dodaj</button>
 
-<div class="panel">
-<h3>Terminarz</h3>
-<input type="date" id="eventDate">
-<input type="text" id="eventClass" placeholder="Klasa (np. 1B)">
-<select id="eventSubject"></select>
-<select id="eventType">
-<option>kartkówka</option>
-<option>sprawdzian</option>
-<option>projekt</option>
-</select>
-<input type="text" id="eventDesc" placeholder="Opis (np. dział 3 – ułamki)">
-<button onclick="addEvent()">Dodaj</button>
-<ul id="events"></ul>
-</div>
-
-<div class="panel">
-<h3>Lekcja</h3>
-<button onclick="startLesson()">Zacznij lekcję</button>
-<div id="lessonPanel" style="display:none;margin-top:10px;">
-  <p><strong>Temat lekcji:</strong></p>
-  <input type="text" id="lessonTopic" style="width:300px" placeholder="Wpisz temat lekcji">
-  <button onclick="saveLessonTopic()">Zapisz temat</button>
-  <h4>Obecność:</h4>
-  <div id="attendanceList"></div>
-</div>
-</div>
-
-<div class="panel">
-<h3>Zachowanie</h3>
-<table>
-<tr>
-<th>Uczeń</th>
-<th>Punkty</th>
-<th>Dodaj / Odejmij</th>
-<th>Opis</th>
-<th>Akcja</th>
-</tr>
-<tbody id="behaviorRows"></tbody>
-</table>
-</div>
-</div>
-
-<div class="panel">
+<h2>Oceny</h2>
 <table>
 <thead>
 <tr>
-<th>Nr</th>
 <th>Uczeń</th>
-<th>Oceny</th>
-<th>Śr. sem.</th>
-<th>Śr. roczna</th>
-<th>Śród.</th>
-<th>Roczna</th>
-<th>Dodaj ocenę</th>
+<th>Przedmiot</th>
+<th>Ocena</th>
 </tr>
 </thead>
-<tbody id="rows"></tbody>
+<tbody id="tabelaOcen"></tbody>
 </table>
-</div>
 
 <script>
-const students=["Marta","Ewelina","Klara","Tomek","Maria","Iwona","Krzysztof","Elena","Sebastian"];
-const subjects=["matematyka","polski","biologia","geografia","chemia","historia","informatyka","angielski"];
 
-let data=JSON.parse(localStorage.getItem("librus"))||{};
+let uczniowie = ["Filip", "Elena", "Sebastian"];
+let oceny = JSON.parse(localStorage.getItem("oceny")) || [];
 
-// MIGRACJA STARYCH DANYCH (jeśli były bez semestrów)
-students.forEach(s=>{
-  if(data[s] && data[s].grades && !data[s].grades["1"]){
-    const oldGrades=data[s].grades;
-    data[s].grades={"1":{},"2":{}};
-    subjects.forEach(p=>{
-      data[s].grades["1"][p]=oldGrades[p]||[];
-      data[s].grades["2"][p]=[];
-    });
+function zapisz() {
+localStorage.setItem("oceny", JSON.stringify(oceny));
+}
 
-    const oldMid=data[s].mid||{};
-    const oldFinal=data[s].final||{};
-    data[s].mid={"1":oldMid,"2":{}};
-    data[s].final={"1":oldFinal,"2":{}};
-  }
+function renderUczniowie() {
+let lista = document.getElementById("listaUczniow");
+let select = document.getElementById("uczen");
+lista.innerHTML = "";
+select.innerHTML = "";
+
+uczniowie.forEach(u => {
+let li = document.createElement("li");
+li.textContent = u;
+lista.appendChild(li);
+
+let opt = document.createElement("option");
+opt.textContent = u;
+select.appendChild(opt);
 });
+}
 
-students.forEach(s=>{
-  if(!data[s]) data[s]={mid:{1:{},2:{}},final:{1:{},2:{}},grades:{1:{},2:{}}};
-
-  ["1","2"].forEach(sem=>{
-    if(!data[s].grades[sem]) data[s].grades[sem]={};
-    subjects.forEach(p=>{
-      if(!data[s].grades[sem][p]) data[s].grades[sem][p]=[];
-    });
-  });
+function renderOceny() {
+let tabela = document.getElementById("tabelaOcen");
+tabela.innerHTML = "";
+oceny.forEach(o => {
+let tr = document.createElement("tr");
+tr.innerHTML = `
+<td>${o.uczen}</td>
+<td>${o.przedmiot}</td>
+<td>${o.ocena}</td>
+`;
+tabela.appendChild(tr);
 });
-
-if(!data.events) data.events=[];
-if(!data.attendance) data.attendance={};
-if(!data.behavior) data.behavior={};
-
-// inicjalizacja punktów zachowania
-students.forEach(s=>{
-  if(!data.behavior[s]){
-    data.behavior[s]={points:125,history:[]};
-  }
-});
-
-const subjectSelect=document.getElementById("subject");
-const eventSubject=document.getElementById("eventSubject");
-
-subjects.forEach(p=>{
-  const o=document.createElement("option");
-  o.textContent=p;o.value=p;
-  subjectSelect.appendChild(o);
-
-  const o2=document.createElement("option");
-  o2.textContent=p;o2.value=p;
-  eventSubject.appendChild(o2);
-});
-
-function gradeValue(v){
-  if(v.includes("+")) return parseInt(v)+0.25;
-  if(v.includes("-")) return parseInt(v)-0.25;
-  return parseFloat(v);
 }
 
-function avg(gr){
-  let s=0,w=0;
-  gr.forEach(g=>{
-    s+=gradeValue(g.val)*(g.weight||1);
-    w+=(g.weight||1);
-  });
-  return w?(s/w).toFixed(2):"-";
+function dodajOcene() {
+let uczen = document.getElementById("uczen").value;
+let przedmiot = document.getElementById("przedmiot").value;
+let ocena = document.getElementById("ocena").value;
+
+if(!ocena) return;
+
+oceny.push({uczen, przedmiot, ocena});
+zapisz();
+renderOceny();
 }
 
-function render(){
-  const rows=document.getElementById("rows");
-  rows.innerHTML="";
-
-  const sub=subjectSelect.value;
-  const sem=document.getElementById("semester").value;
-
-  students.forEach((s,i)=>{
-    const g=data[s].grades[sem][sub];
-
-    const semAvg=avg(g);
-    const sem1=avg(data[s].grades["1"][sub]);
-    const sem2=avg(data[s].grades["2"][sub]);
-
-    let year="-";
-    if(sem1!=="-" && sem2!=="-"){
-      year=((parseFloat(sem1)+parseFloat(sem2))/2).toFixed(2);
-    }
-
-    rows.innerHTML+=`
-<tr>
-<td>${i+1}</td>
-<td class="name">${s}</td>
-<td>
-<div class="grades">
-${g.map((x,j)=>`
-<div class="grade g${parseInt(x.val)}"
-title="${x.desc||""}"
-onclick="removeGrade('${s}',${j})">
-${x.val}
-</div>`).join("")}
-</div>
-</td>
-<td>${semAvg}</td>
-<td>${year}</td>
-<td>
-<input class="mid" style="width:30px"
- value="${data[s].mid[sem][sub]||""}"
- onblur="setMid('${s}','${sub}',this.value)">
-</td>
-<td>
-<input class="mid" style="width:30px"
- value="${data[s].final[sem][sub]||""}"
- onblur="setFinal('${s}','${sub}',this.value)">
-</td>
-<td>
-<input placeholder="3+" style="width:35px"
- onkeydown="if(event.key==='Enter')addGrade('${s}',this)">
-</td>
-</tr>`;
-  });
-}
-
-function addGrade(s,input){
-  const v=input.value.trim();
-  if(!v) return;
-
-  const desc=prompt("Za co ta ocena?");
-  if(desc===null) return;
-
-  const weight=parseInt(prompt("Waga:",1))||1;
-  const sem=document.getElementById("semester").value;
-
-  data[s].grades[sem][subjectSelect.value].push({
-    val:v,desc,weight
-  });
-
-  input.value="";
-  save();
-}
-
-function removeGrade(s,i){
-  const sem=document.getElementById("semester").value;
-  data[s].grades[sem][subjectSelect.value].splice(i,1);
-  save();
-}
-
-function setMid(s,sub,v){
-  const sem=document.getElementById("semester").value;
-  data[s].mid[sem][sub]=v;
-  save();
-}
-
-function setFinal(s,sub,v){
-  const sem=document.getElementById("semester").value;
-  data[s].final[sem][sub]=v;
-  save();
-}
-
-function renderEvents(){
-  const list=document.getElementById("events");
-  list.innerHTML="";
-
-  data.events.forEach((e,i)=>{
-    const d=new Date(e.date);
-    const days=["Niedziela","Poniedziałek","Wtorek","Środa","Czwartek","Piątek","Sobota"];
-    const dayName=days[d.getDay()];
-
-    list.innerHTML+=`<li>
-      <strong>${dayName}</strong> (${e.date}) – Klasa ${e.className} – ${e.subject} – ${e.type}<br>
-      ${e.desc||""}
-      <button onclick="removeEvent(${i})">X</button>
-    </li>`;
-  });
-}
-
-function addEvent(){
-  const date=document.getElementById("eventDate").value;
-  const className=document.getElementById("eventClass").value.trim();
-  const subject=document.getElementById("eventSubject").value;
-  const type=document.getElementById("eventType").value;
-  const desc=document.getElementById("eventDesc").value.trim();
-
-  if(!date || !className){
-    alert("Podaj datę i klasę!");
-    return;
-  }
-
-  data.events.push({date,className,subject,type,desc});
-
-  // OKIENKO POTWIERDZENIA
-  alert(`Dodano wydarzenie:
-Klasa ${className} – ${type} (${subject})
-${desc||""}`);
-
-  document.getElementById("eventDate").value="";
-  document.getElementById("eventClass").value="";
-  document.getElementById("eventDesc").value="";
-
-  save();
-}
-
-function removeEvent(i){
-  data.events.splice(i,1);
-  save();
-}
-
-function startLesson(){
-  const panel=document.getElementById("lessonPanel");
-  panel.style.display="block";
-  renderAttendance();
-}
-
-function renderAttendance(){
-  const list=document.getElementById("attendanceList");
-  list.innerHTML="";
-
-  const today=new Date().toISOString().split("T")[0];
-  if(!data.attendance[today]) data.attendance[today]={};
-
-  students.forEach(s=>{
-    const status=data.attendance[today][s]||"";
-
-    list.innerHTML+=`
-    <div style="margin-bottom:5px">
-      ${s}
-      <select onchange="setAttendance('${s}',this.value)">
-        <option value="">--</option>
-        <option value="obecny" ${status==="obecny"?"selected":""}>Obecny</option>
-        <option value="nb" ${status==="nb"?"selected":""}>Nieobecny</option>
-        <option value="spóźnienie" ${status==="spóźnienie"?"selected":""}>Spóźnienie</option>
-        <option value="zwolnienie" ${status==="zwolnienie"?"selected":""}>Zwolnienie</option>
-      </select>
-    </div>`;
-  });
-}
-
-function setAttendance(student,value){
-  const today=new Date().toISOString().split("T")[0];
-  if(!data.attendance[today]) data.attendance[today]={};
-  data.attendance[today][student]=value;
-  save();
-}
-
-function saveLessonTopic(){
-  const today=new Date().toISOString().split("T")[0];
-  const topic=document.getElementById("lessonTopic").value.trim();
-  if(!topic) return;
-
-  if(!data.attendance[today]) data.attendance[today]={};
-  data.attendance[today]._topic=topic;
-  alert("Temat zapisany!");
-  save();
-}
-
-function renderBehavior(){
-  const body=document.getElementById("behaviorRows");
-  body.innerHTML="";
-
-  students.forEach(s=>{
-    const b=data.behavior[s];
-
-    body.innerHTML+=`
-    <tr>
-      <td>${s}</td>
-      <td><strong>${b.points}</strong><br><span style="font-size:11px">${getBehaviorGrade(b.points)}</span></td>
-      <td><input type="number" id="pts_${s}" style="width:60px" placeholder="np. -5"></td>
-      <td><input type="text" id="desc_${s}" placeholder="Za co?" style="width:200px"></td>
-      <td><button onclick="addBehavior('${s}')">Zapisz</button></td>
-    </tr>
-    <tr>
-      <td colspan="5" style="font-size:11px;color:#555">
-        ${b.history.map(h=>`${h.change>0?'+':''}${h.change} pkt – ${h.desc}`).join("<br>")}
-      </td>
-    </tr>`;
-  });
-}
-
-function getBehaviorGrade(points){
-  if(points>=150) return "Wzorowe";
-  if(points>=140) return "Bardzo dobre";
-  if(points>=100) return "Dobre";
-  if(points>=70) return "Poprawne";
-  if(points>=30) return "Nieodpowiednie";
-  return "Naganne";
-}
-
-function addBehavior(student){
-  const pts=parseInt(document.getElementById(`pts_${student}`).value);
-  const desc=document.getElementById(`desc_${student}`).value.trim();
-  if(isNaN(pts) || !desc) return alert("Podaj punkty i opis");
-
-  data.behavior[student].points+=pts;
-  data.behavior[student].history.push({change:pts,desc});
-
-  document.getElementById(`pts_${student}`).value="";
-  document.getElementById(`desc_${student}`).value="";
-
-  save();
-}
-
-function save(){
-  database.ref("librus").set(data);
-}
-
-subjectSelect.onchange=render;
-document.getElementById("semester").onchange=render;
-database.ref("librus").once("value").then(function(snapshot){
-  if(snapshot.exists()){
-    data = snapshot.val();
-  } else {
-    database.ref("librus").set(data);
-  }
-  render();
-  renderEvents();
-  renderBehavior();
-});
-});
-  }
-});
+renderUczniowie();
+renderOceny();
 
 </script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
-<script>
-const firebaseConfig = {
-  apiKey: "AIzaSyB8TnrmMwEpsGMj4F0lDfBZMcfLM6NLGPM",
-  authDomain: "minilibrus-3-ezz.firebaseapp.com",
-  databaseURL: "https://minilibrus-3-ezz-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "minilibrus-3-ezz",
-  storageBucket: "minilibrus-3-ezz.firebasestorage.app",
-  messagingSenderId: "326399705740",
-  appId: "1:326399705740:web:012f2a655e11ffd533b1a9"
-};
-
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
-</script>
 </body>
 </html>
