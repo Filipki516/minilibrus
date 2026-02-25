@@ -418,6 +418,29 @@ render();
 renderEvents();
 renderBehavior();
 </script>
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
+  const firebaseConfig = {
+    apiKey: "AIzaSyB8TnrmMwEpsGMj4F0lDfBZMcfLM6NLGPM",
+    authDomain: "minilibrus-3-ezz.firebaseapp.com",
+    databaseURL: "https://minilibrus-3-ezz-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "minilibrus-3-ezz",
+    storageBucket: "minilibrus-3-ezz.firebasestorage.app",
+    messagingSenderId: "326399705740",
+    appId: "1:326399705740:web:dcb768658c42a07433b1a9"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  window.db = db;
+  window.ref = ref;
+  window.set = set;
+  window.get = get;
+  window.onValue = onValue;
+</script>
 </body>
 </html>
