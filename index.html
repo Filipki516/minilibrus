@@ -406,7 +406,7 @@ function addBehavior(student){
 }
 
 function save(){
-  localStorage.setItem("librus",JSON.stringify(data));
+  set(ref(db, "librus"), data);
   render();
   renderEvents();
 }
