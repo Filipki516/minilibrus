@@ -118,12 +118,7 @@ let data = {};
 
  
 
-onValue(ref(db, "librus"), (snapshot) => {
-  data = snapshot.val() || {};
-  render();
-  renderEvents();
-  renderBehavior();
-});
+
 
 // MIGRACJA STARYCH DANYCH (jeśli były bez semestrów)
 students.forEach(s=>{
@@ -443,7 +438,17 @@ renderBehavior();
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
+onValue(ref(db,"librus"),(snapshot)=>{
+  data=snapshot.val();
 
+  if(!data){
+    data={};
+  }
+
+  render();
+  renderEvents();
+  renderBehavior();
+});
   window.db = db;
   window.ref = ref;
   window.set = set;
