@@ -114,7 +114,16 @@ Semestr:
 const students=["Marta","Ewelina","Klara","Tomek","Maria","Iwona","Krzysztof","Elena","Sebastian"];
 const subjects=["matematyka","polski","biologia","geografia","chemia","historia","informatyka","angielski"];
 
-let data=JSON.parse(localStorage.getItem("librus"))||{};
+let data = {};
+
+ 
+
+onValue(ref(db, "librus"), (snapshot) => {
+  data = snapshot.val() || {};
+  render();
+  renderEvents();
+  renderBehavior();
+});
 
 // MIGRACJA STARYCH DANYCH (jeśli były bez semestrów)
 students.forEach(s=>{
@@ -407,8 +416,7 @@ function addBehavior(student){
 
 function save(){
   set(ref(db, "librus"), data);
-  render();
-  renderEvents();
+  
 }
 
 subjectSelect.onchange=render;
