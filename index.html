@@ -449,11 +449,16 @@ onValue(ref(db,"librus"),(snapshot)=>{
   renderEvents();
   renderBehavior();
 });
-  window.db = db;
+ window.db = db;
   window.ref = ref;
-  window.set = set;
-  window.get = get;
-  window.onValue = onValue;
+window.set = set;
+window.get = get;
+window.onValue = onValue;
+
+window.addGrade = addGrade;
+window.addEvent = addEvent;
+window.startLesson = startLesson;
+window.addBehavior = addBehavior;
 </script>
 </body>
 </html>
